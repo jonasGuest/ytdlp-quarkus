@@ -2,18 +2,19 @@ package org.acme
 
 import jakarta.enterprise.context.ApplicationScoped
 import org.jboss.logging.Logger
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.Executors
-import kotlin.system.measureTimeMillis
-import java.time.Instant
-import java.nio.file.Path
+import java.net.URI
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFilePermission
-import java.net.URI
+import java.time.Instant
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+
 
 sealed interface Command {
     val id: UUID
@@ -136,15 +137,18 @@ class CommandQueueService {
         val startTimeMillis = System.currentTimeMillis()
         val urlToDownload = command.urlStr.trim()
         require(urlToDownload.isNotBlank()) { "URL cannot be blank" }
-        val tempDir = Files.createTempDirectory("yt-dlp-downloads")
+        val userHome = System.getProperty("user.home")
+        require(userHome.isNotBlank()) { "User home directory cannot be determined" }
+        val downloadDir = Paths.get(userHome, "dl-media")
+//        val downloadDir = Files.createTempDirectory("~/dl-media")
 
-        val process = getDownloadCommand(tempDir, urlToDownload).start()
+        val process = getDownloadCommand(downloadDir, urlToDownload).start()
         val stdout = process.inputStream.bufferedReader().use { it.readText() }
         val stderr = process.errorStream.bufferedReader().use { it.readText() }
         process.waitFor()
         val exitCode = process.exitValue()
 
-        val downloadedFiles = Files.list(tempDir).filter { Files.isRegularFile(it) }.toList()
+        val downloadedFiles = Files.list(downloadDir).filter { Files.isRegularFile(it) }.toList()
         val fileInfo = if (exitCode == 0 && downloadedFiles.isNotEmpty()) {
                 val downloadedFile = downloadedFiles[0]
                 FileInfo(downloadedFile.fileName.toString(), fileLocation = downloadedFile.toAbsolutePath().toString())
