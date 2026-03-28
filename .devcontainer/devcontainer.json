@@ -1,0 +1,22 @@
+{
+	"name": "Quarkus Kotlin Gradle",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"java.home": "/usr/lib/jvm/java-21-openjdk-amd64"
+			},
+			"extensions": [
+				"vscjava.vscode-java-pack",
+				"fwcd.kotlin",
+				"redhat.vscode-quarkus",
+				"vscjava.vscode-gradle"
+			]
+		}
+	},
+	"remoteUser": "vscode",
+	"updateRemoteUserUID": true,
+	"postCreateCommand": "bash -c 'source ~/.sdkman/bin/sdkman-init.sh && quarkus --version'"
+}
