@@ -6,7 +6,7 @@ ENV TZ="Europe/Vienna" \
 
 # Update apt, install tzdata and openjdk, then configure the timezone
 RUN apt-get update && \
-    apt-get install -y tzdata openjdk-25-jdk && \
+    apt-get install -y tzdata openjdk-25-jdk python3 && \
     ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata && \
     rm -rf /var/lib/apt/lists/*
